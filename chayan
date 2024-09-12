@@ -1,0 +1,186 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+class Doctor {
+    private String name;
+    private String specialization;
+
+    public Doctor(String name, String specialization) {
+        this.name = name;
+        this.specialization = specialization;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getSpecialization() {
+        return specialization;
+    }
+
+    public void setSpecialization(String specialization) {
+        this.specialization = specialization;
+    }
+
+    public void displayAvailability() {
+        System.out.println("Doctor's availability is not specified.");
+    }
+}
+
+class GeneralPractitioner extends Doctor {
+
+    public GeneralPractitioner(String name) {
+        super(name, "General Practitioner");
+    }
+
+    public void displayAvailability() {
+        System.out.println(getName() + " (General Practitioner) is available for walk-in patients from 10 AM to 5 PM.");
+    }
+}
+
+class Specialist extends Doctor {
+
+    public Specialist(String name) {
+        super(name, "Specialist");
+    }
+    public void displayAvailability() {
+        System.out.println(getName() + " (Specialist) requires an appointment confirmation.");
+    }
+}
+class Patient {
+    private String name;
+    private int age;
+
+    public Patient(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
+
+class Appointment {
+    private Doctor doctor;
+    private Patient patient;
+    private String time;
+
+    public Appointment(Doctor doctor, Patient patient, String time) {
+        this.doctor = doctor;
+        this.patient = patient;
+        this.time = time;
+    }
+
+    public void saveToFile() {
+        String appointmentDetails = "Doctor: " + doctor.getName() + ", Patient: " + patient.getName() + ", Time: " + time + "\n";
+        try (FileWriter writer = new FileWriter("appointments.txt", true)) {
+            writer.write(appointmentDetails);
+            System.out.println("Appointment saved successfully.");
+        } catch (IOException e) {
+            System.out.println("Error saving appointment.");
+            e.printStackTrace();
+        }
+    }
+}
+
+public class ClinicSystem {
+    private static List<Doctor> doctors = new ArrayList<>();
+    private static Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        doctors.add(new GeneralPractitioner("Dr. shovon"));
+        doctors.add(new Specialist("Dr. musa"));
+
+        boolean running = true;
+        while (running) {
+            System.out.println("Welcome to the Clinic Appointment System!");
+            System.out.println("1. View Doctors");
+            System.out.println("2. Book an Appointment");
+            System.out.println("3. View Doctor's Schedule");
+            System.out.println("4. Exit");
+            System.out.print("Choose an option: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine();  
+
+            switch (choice) {
+                case 1:
+                    viewDoctors();
+                    break;
+                case 2:
+                    bookAppointment();
+                    break;
+                case 3:
+                    viewSchedule();
+                    break;
+                case 4:
+                    running = false;
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static void viewDoctors() {
+        System.out.println("Available Doctors:");
+        for (Doctor doctor : doctors) {
+            System.out.println(doctor.getName() + " - " + doctor.getSpecialization());
+        }
+    }
+
+    private static void bookAppointment() {
+        System.out.println("Enter patient's name: ");
+        String patientName = scanner.nextLine();
+        System.out.println("Enter patient's age: ");
+        int patientAge = scanner.nextInt();
+        scanner.nextLine();  
+        Patient patient = new Patient(patientName, patientAge);
+
+        System.out.println("Choose a doctor by entering their number:");
+        for (int i = 0; i < doctors.size(); i++) {
+            System.out.println((i + 1) + ". " + doctors.get(i).getName() + " - " + doctors.get(i).getSpecialization());
+        }
+        int doctorChoice = scanner.nextInt() - 1;
+        scanner.nextLine();  
+        Doctor chosenDoctor = doctors.get(doctorChoice);
+
+        System.out.println("Enter appointment time (e.g., 10:00 AM): ");
+        String appointmentTime = scanner.nextLine();
+
+        Appointment appointment = new Appointment(chosenDoctor, patient, appointmentTime);
+        chosenDoctor.displayAvailability();
+        appointment.saveToFile();
+    }
+
+    private static void viewSchedule() {
+        try (BufferedReader reader = new BufferedReader(new FileReader("appointments.txt"))) {
+            String line;
+            System.out.println("Appointments Schedule:");
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading appointments.");
+            e.printStackTrace();
+        }
+    }
+}
